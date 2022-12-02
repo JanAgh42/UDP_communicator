@@ -2,9 +2,6 @@ from src.interface import Interface
 from src.server import Server
 from src.client import Client
 
-#var = (250).to_bytes(1, 'big')
-#x = int.from_bytes(var, 'big')
-
 ip = ""
 port = 0
 
@@ -51,4 +48,4 @@ while True:
     else:
         entity_type = initialize_program()
 
-print('***Program shutdown***')
+print('***Application shutdown***')

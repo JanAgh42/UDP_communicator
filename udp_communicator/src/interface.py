@@ -4,7 +4,14 @@ class Interface:
 
     @staticmethod
     def entity_menu_choice(type: str) -> int:
-        prompt = 'Client(1) Server(2) Exit(0): ' if type == 'init' else 'Transfer(1) Change mode(2) Exit(0): '
+        match type:
+            case 'init':
+                prompt = 'Client(1) Server(2) Exit(0): '
+            case 'client':
+                prompt = 'Transfer(1) Change mode(2) Exit(0): '
+            case _:
+                prompt = 'Message(1) File(2) Exit(0): '
+
         value = 0
 
         while True:

@@ -1,37 +1,39 @@
+from .signal_types import Signals
 from .general import General
-
-import socket
 
 class Server (General):
 
     def __init__(self, ip: str, port: int) -> None:
         super().__init__(ip, port)
 
-        self.buffer_size  = 1024
-        self.msg_from_server = "Hello UDP Client"
-        self.bytes_to_send = str.encode(self.msg_from_server)
+        self.connected_client = False
 
-    def call_server(self) -> None:
-        udp_server_socket = socket.socket(family = socket.AF_INET, type = socket.SOCK_DGRAM)
+    def call_server(self) -> int:
+        self.init_socket()
 
-        udp_server_socket.bind((self.ip_addr, self.port))
+        self.entity_socket.bind(self.adresses)
 
-        print("UDP server up and listening")
+        print("Server addresses:", self.adresses)
+        print("UDP server up and listening...")
 
-        while(True):
-            bytes_address_pair = udp_server_socket.recvfrom(self.buffer_size)
+        while True:
+            data, addr = self.entity_socket.recvfrom(self.buffer_size)
 
-            message = bytes_address_pair[0]
+            if not self.connected_client and int.from_bytes(data[: 2], 'big') == Signals.SYN.value:
+                self.reply_change_connection(data[: 2], addr)
+                self.client_addr = addr
+                self.connected_client = True
+    
+                print("server - successful connection with client")
+            elif self.connected_client and int.from_bytes(data[: 2], 'big') == Signals.FIN.value:
+                self.reply_change_connection(data[: 2], addr)
+                self.connected_client = False
+    
+                print("server - successful disconnection of client")
+            elif self.connected_client and int.from_bytes(data[: 2], 'big') == Signals.SWITCH.value:
+                self.request_change_connection(Signals.FIN, self.client_addr)
 
-            address = bytes_address_pair[1]
-
-            client_msg = "Message from Client:{}".format(message)
-            client_ip  = "Client IP Address:{}".format(address)
-            
-            print(client_msg)
-            print(client_ip)
-
-            udp_server_socket.sendto(self.bytes_to_send, address)
-
-    def receive_packet(self) -> None:
-        pass
+                print("server - successful disconnection of client")
+                return 1
+            elif self.connected_client and int.from_bytes(data[: 2], 'big') == Signals.DATA_INIT.value:
+                pass
