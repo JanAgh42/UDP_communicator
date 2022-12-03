@@ -59,6 +59,29 @@ class Interface:
         return (ip_address if ip_address != "" else socket.gethostbyname(socket.gethostname()), port)
 
     @staticmethod
+    def load_fragment_size() -> int:
+        value = 1458
+
+        while True:
+            try:
+                value = int(input("Enter max fragment size (1-1458): "))
+            except ValueError:
+                print("Not a number")
+                continue
+            
+            if value > 0 and value < 1459:
+                break
+            else:
+                print("Invalid choice")
+
+        return value
+
+    @staticmethod
     def chmod_console_output(first: str, second: str) -> None:
         print(f"Changing mode from { first } to { second }...")
         print("------------------------------------------------ ")
+
+    @staticmethod
+    def transfer_console_output(name: str, num: int) -> None:
+        print("------------------------------------------------ ")
+        print(f"server - initialized { name } transfer with { num } fragments")
