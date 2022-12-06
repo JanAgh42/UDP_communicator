@@ -2,12 +2,14 @@ from src.interface import Interface
 from src.server import Server
 from src.client import Client
 
+from time import sleep
+
 ip = ""
 port = 0
 
 entity_type = -1
 
-def initialize_program(settings: (bool | None) = None) -> int:
+def initialize_application(settings: (bool | None) = None) -> int:
     global_vars = globals()
 
     if settings == None:
@@ -38,14 +40,16 @@ def init_server(ip: str, port: int) -> int:
 
 while True:
     if entity_type == 1:
+        sleep(1)
         Interface.chmod_console_output("server", "client")
-        entity_type = initialize_program(True)
+        entity_type = initialize_application(True)
     elif entity_type == 2:
+        sleep(0.5)
         Interface.chmod_console_output("client", "server")
-        entity_type = initialize_program(False)
+        entity_type = initialize_application(False)
     elif entity_type == 0:
         break
     else:
-        entity_type = initialize_program()
+        entity_type = initialize_application()
 
 print('***Application shutdown***')
