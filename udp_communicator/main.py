@@ -1,3 +1,4 @@
+import src.addresses as addr
 from src.interface import Interface
 from src.server import Server
 from src.client import Client
@@ -40,11 +41,11 @@ def init_server(ip: str, port: int) -> int:
 
 while True:
     if entity_type == 1:
-        sleep(1)
+        sleep(1.4)
         Interface.chmod_console_output("server", "client")
         entity_type = initialize_application(True)
     elif entity_type == 2:
-        sleep(0.5)
+        sleep(.7)
         Interface.chmod_console_output("client", "server")
         entity_type = initialize_application(False)
     elif entity_type == 0:

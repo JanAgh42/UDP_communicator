@@ -28,10 +28,8 @@ class General:
                 crc_result = crc32(data[2])
                 crc_result = crc_result + 1 if randint(0, 100) > 90 and error else crc_result
                 
-                packet.extend(crc_result.to_bytes(4, 'big'))
-                
+                packet.extend(crc_result.to_bytes(4, 'big'))            
         self.entity_socket.sendto(packet, addr)
-
 
     def eval_sig(self, signal: bytes) -> Signals:
         signal_type = int.from_bytes(signal, 'big')
