@@ -5,35 +5,28 @@ from src.client import Client
 
 from time import sleep
 
-ip = ""
-port = 0
-
 entity_type = -1
 
 def initialize_application(settings: (bool | None) = None) -> int:
-    global_vars = globals()
-
     if settings == None:
         app_type = Interface.entity_menu_choice('init')
 
         if app_type == 1:
-            global_vars['ip'], global_vars['port'] = Interface.initialize_entity("client")
-
-            return init_client(global_vars['ip'], global_vars['port'])
+            addr.foreign_ip, addr.foreign_port = Interface.initialize_entity("client")
+            return init_client(addr.foreign_ip, addr.foreign_port)
         elif app_type == 2:
-            global_vars['ip'], global_vars['port'] = Interface.initialize_entity("server")
-
-            return init_server(global_vars['ip'], global_vars['port'])
+            addr.own_ip, addr.own_port = Interface.initialize_entity("server")
+            return init_server(addr.own_ip, addr.own_port)
         else:
             return 0
     elif settings:
-        return init_client(global_vars['ip'], global_vars['port'])
+        return init_client(addr.foreign_ip, addr.foreign_port, True)
     else:
-        return init_server(global_vars['ip'], global_vars['port'])
+        return init_server(addr.own_ip, addr.own_port)
 
-def init_client(ip: str, port: int) -> int:
+def init_client(ip: str, port: int, switch: bool = False) -> int:
     client = Client(ip, port)
-    return client.call_client()
+    return client.call_client(switch)
 
 def init_server(ip: str, port: int) -> int:
     server = Server(ip, port)

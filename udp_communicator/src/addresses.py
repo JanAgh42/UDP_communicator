@@ -1,5 +1,5 @@
-server_ip = ""
-server_port = 0
+own_ip = ""
+own_port = 0
 
-client_ip = ""
-client_port = 0
+foreign_ip = ""
+foreign_port = 0

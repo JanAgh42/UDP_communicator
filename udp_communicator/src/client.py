@@ -1,3 +1,4 @@
+from . import addresses as ad
 from .signal_types import Signals
 from .interface import Interface
 from .general import General
@@ -18,8 +19,16 @@ class Client (General):
         self.keepalive_error_count = 0
         self.run_keepalive = True
 
-    def call_client(self) -> int:
+    def call_client(self, switch: bool) -> int:
         self.init_socket()
+
+        if not switch:
+            self.entity_socket.bind(("", 0))
+            ad.own_ip = socket.gethostbyname(socket.gethostname())
+            ad.own_port = self.entity_socket.getsockname()[1]
+        else:
+            self.entity_socket.bind((ad.own_ip, ad.own_port))
+
         self.request_change_connection(Signals.SYN, self.adresses)
         print("client - successful connection with server")
         self.init_keepalive()
@@ -41,51 +50,73 @@ class Client (General):
                     self.entity_socket.close()
                     print("client - successful disconnection from server")
                 return value
-            else:
-                self.init_transfer()
+            elif not self.init_transfer():
+                print("client - aborted connection due to inactivity")
+                return -1
 
-    def init_transfer(self) -> None:
-        generate_error = Interface.entity_menu_choice('error')
+    def init_transfer(self) -> bool:
+        error = Interface.entity_menu_choice('error')
 
-        if generate_error == 0:
-            return
+        if error == 0:
+            return True
         self.max_frag_size = Interface.load_fragment_size()
 
         while True:
-            value = Interface.entity_menu_choice('transfer')
+            value, result = Interface.entity_menu_choice('transfer'), True
 
             if value == 0:
-                return
+                return True
             elif value == 1:
-                text_content = str.encode(input("Enter text: "))
-                self.create_transfer_header(text_content, "text")
-            else:
-                file_name = input("Enter file name: ")
-                file_path = os.path.abspath(file_name)[: - file_name.__len__()] + "send\\" + file_name
+                content = str.encode(input("Enter text (empty - exit): "))
 
-                with open(file_path, "rb") as file:
-                    file_content = file.read()
-                    self.create_transfer_header(file_content, file_name, generate_error)
+                if content.__len__() <= 0:
+                    print("Message was empty")
+                else:
+                    result = self.create_transfer_header(content, "text", error)
+            else:
+                try:
+                    path = input("Enter file path (empty - sends predefined file): ")
+
+                    if path == "":
+                        path = "{}\{}".format(os.path.abspath("send"), "map.jpg")
+
+                    with open(path, "rb") as file:
+                        content = file.read()
+                        result = self.create_transfer_header(content, path.split("\\")[-1], error, path)
+                except OSError:
+                    print("File at given path does not exist")
+            
+            if not result:
+                return False
             self.run_keepalive = True
 
-    def create_transfer_header(self, content: bytes, type: str, error: int = 2) -> None:
+    def create_transfer_header(self, content: bytes, type: str, error: int = 2, path: str = "") -> bool:
         transfer_id = random.randint(1, 65535)
         self.run_keepalive = False
         size = len(content)
-        header = [transfer_id, ceil(size / self.max_frag_size), str.encode(type)]
+        fragments = ceil(size / self.max_frag_size)
+        header = [transfer_id, fragments, str.encode(type)]
         
         self.send_packet(Signals.DATA_INIT.value, self.adresses, header)
         data, addr = self.entity_socket.recvfrom(self.buffer_size)
 
         if int.from_bytes(data[: 1], 'big') == Signals.ACK.value:
             print("client - beginning of file transfer")
-            if self.transfer_data(content, header, False if error == 2 else True):
-                print(f"client - transferred { len(content) }B")
+            if not self.transfer_data(content, header, False if error == 2 else True):
+                return False
+
+            if type == "text":
+                Interface.client_console_output(size, fragments, False)
+            else:
+                Interface.client_console_output(size, fragments, True, type, path)
+            return True
 
     def transfer_data(self, content: bytes, header: list, error: bool) -> bool:
-        packets, counter = self.create_fragments(content, header), 0
+        packets = self.create_fragments(content, header)
 
         for index, packet in enumerate(packets):
+            counter = 0
+
             while True:
                 self.send_packet(Signals.DATA.value, self.adresses, packet, error)
 
@@ -102,9 +133,8 @@ class Client (General):
                 except socket.error:
                     counter += 1
                     print("client - re-sending latest packet - no server response")
-                    sleep(5.0)
 
-                    if counter > 2:
+                    if counter > 4:
                         return False
         return True
 
@@ -118,7 +148,6 @@ class Client (General):
 
             begin += self.max_frag_size
             end += self.max_frag_size
-        
         return fragmented_packets
 
     def init_keepalive(self) -> None:
@@ -136,14 +165,18 @@ class Client (General):
                         entity_socket.settimeout(None)
 
                         if int.from_bytes(data[: 1], 'big') == Signals.ACK.value:
-                            keepalive_error_count = 0
+                            self.keepalive_error_count = 0
+                            sleep(5.0)
                     except socket.error:
-                        keepalive_error_count += 1
-                        print("\nclient - no keepalive response from server")
+                        self.keepalive_error_count += 1
 
-                        if keepalive_error_count > 2:
+                        if self.keepalive_error_count == 1:
+                            print()
+                        print("client - no keepalive response from server")
+
+                        if self.keepalive_error_count > 4:
+                            print("client - aborted connection due to inactivity")
                             self.run_keepalive = False
-                    sleep(5.0)
                 else:
                     sleep(0.5)
         

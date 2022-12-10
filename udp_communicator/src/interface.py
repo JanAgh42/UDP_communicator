@@ -39,8 +39,9 @@ class Interface:
             try:
                 if type == "server":
                     pc_ip_addr = socket.gethostbyname(socket.gethostname())
-
-                ip_address = input(f"Enter server IP address ({ type } side { pc_ip_addr }): ")
+                    print(f"Server IP address set to { pc_ip_addr }")
+                else:
+                    ip_address = input(f"Enter server IP address ({ type } side): ")
 
                 octets = ip_address.split('.')
                 validation = all(0 < len(octet) < 4 and 0 <= int(octet) < 256 for octet in octets)
@@ -61,7 +62,7 @@ class Interface:
                 break
         print("------------------------------------------------")
 
-        return (ip_address if ip_address != "" or type != "server" else pc_ip_addr, port)
+        return (ip_address if type != "server" else pc_ip_addr, port)
 
     @staticmethod
     def load_fragment_size() -> int:
@@ -92,17 +93,28 @@ class Interface:
         print(f"server - initialized { name } transfer with { num } fragments")
     
     @staticmethod
-    def text_console_output(message: str, size: int) -> None:
+    def stext_console_output(message: str, size: int, frags: int) -> None:
         print("------------------------------------------------")
         print(f"server - message from client: { message }")
         print(f"server - size of message: { size }B")
+        print(f"server - number of fragments: { frags }")
 
     @staticmethod
-    def file_console_output(name: str, size: int, path: str) -> None:
+    def sfile_console_output(name: str, size: int, path: str, frags: int) -> None:
         print("------------------------------------------------")
         print(f"server - file from client: { name }")
         print(f"server - size of file: { size }B")
+        print(f"server - number of fragments: { frags }")
         print(f"server - saved at: { path }")
+
+    @staticmethod
+    def client_console_output(size: int, frags: int, file: bool, name: str = "", path: str = "") -> None:
+        print("------------------------------------------------")
+        if file:
+            print(f"client - transferred to server: { name }")
+            print(f"client - path: { path }")
+        print(f"client - size of transfer: { size }B")
+        print(f"client - number of fragments: { frags }")
 
     @staticmethod
     def server_init_console_output(addr: tuple[str, int]) -> None:
