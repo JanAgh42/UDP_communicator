@@ -55,12 +55,15 @@ class General:
         return decoded_packet
 
     def request_change_connection(self, signal: Signals, addr: tuple[str, int]) -> None:
-        self.send_packet(signal.value, addr)
-        data, addr = self.entity_socket.recvfrom(self.buffer_size)
-        signal = int.from_bytes(data[: 1], 'big')
+        try:
+            self.send_packet(signal.value, addr)
+            data, addr = self.entity_socket.recvfrom(self.buffer_size)
+            signal = int.from_bytes(data[: 1], 'big')
 
-        if signal == Signals.SYN_ACK.value or signal == Signals.FIN_ACK.value:
-            self.send_packet(self.eval_sig(data[: 1]).value, addr)
+            if signal == Signals.SYN_ACK.value or signal == Signals.FIN_ACK.value:
+                self.send_packet(self.eval_sig(data[: 1]).value, addr)
+        except socket.error:
+            pass
 
     def reply_change_connection(self, signal: bytes, addr: tuple[str, int]) -> None:
         self.send_packet(self.eval_sig(signal).value, addr)

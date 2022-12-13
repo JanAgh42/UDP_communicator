@@ -78,7 +78,7 @@ class Client (General):
                     path = input("Enter file path (empty - sends predefined file): ")
 
                     if path == "":
-                        path = "{}\{}".format(os.path.abspath("send"), "map.jpg")
+                        path = "{}\{}".format(os.path.abspath("send"), "anime.jpg")
 
                     with open(path, "rb") as file:
                         content = file.read()
