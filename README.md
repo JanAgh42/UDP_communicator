@@ -1,0 +1,7 @@
+Design and implement a program using a custom protocol on top of the protocol UDP (User Datagram Protocol) of the transport layer of the TCP/IP network model. The program will enable communication between two participants in the local Ethernet network, i.e. the transmission of text messages and any file between computers (nodes). The program will consist of two parts - transmitting and receiving. The transmitting node sends file to another node on the network. It is assumed that there is data loss in the network. If it is sent file larger than the user-defined maximum fragment size, the transmitting part decomposes the file into smaller parts - fragments, which he will send separately.
+
+If the file is sent as a sequence of fragments, the receiving node outputs a receipt message of the fragment with its order and whether it was transferred without errors. After receiving the entire file on the destination this node will display a message about its reception and the absolute path where the received file was saved.
+
+The program must include checking for communication errors and re-requesting errors fragments, including both positive and negative confirmation. After turning on the program, the communicator automatically sends a packet to maintain the connection every 5 second as long as the user will not terminate the connection manually.
+
+The program must be organized in a way so that both communicating nodes can switch between transmitter and receiver modes without the need to manually restart the program.
