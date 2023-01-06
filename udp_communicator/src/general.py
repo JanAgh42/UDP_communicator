@@ -27,7 +27,7 @@ class General:
                 packet.extend(data[2])
 
                 crc_result = crc32(data[2])
-                crc_result = crc_result + 1 if randint(0, 100) > 94 and error else crc_result
+                crc_result = crc_result + 1 if randint(0, 100) > 50 and error else crc_result
                 
                 packet.extend(crc_result.to_bytes(4, 'big'))            
         self.entity_socket.sendto(packet, addr)
